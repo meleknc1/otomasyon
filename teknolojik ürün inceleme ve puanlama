@@ -1,0 +1,224 @@
+#include <iostream>
+#include <locale.h>
+#include <fstream>
+#include <iomanip>
+#include <cstring>
+#include <stdlib.h>
+
+using namespace std;
+
+char secim;
+
+void UrunEkle();
+void Puanlama();
+void Listeleme();
+void UrunArama();
+
+struct Urun
+{
+    char urun_no[10];
+    char marka[40];
+    char model[40];
+    char ozellik[50];
+    int puan;
+    int sayac;
+};
+
+Urun urun;
+
+int main()
+{
+    setlocale(LC_ALL, "TURKISH");
+
+    char devam;
+
+    do
+    {
+        system("cls");
+
+        cout << "|-------HOŞGELDİNİZ-------|" << endl;
+        cout << "|     1-ÜRÜN EKLEME       |" << endl;
+        cout << "|     2-PUANLAMA          |" << endl;
+        cout << "|     3-ÜRÜN LİSTELEME    |" << endl;
+        cout << "|     4-ÜRÜN ARATMA       |" << endl;
+        cout << "|-------------------------|" << endl;
+
+        cout << "Yapmak istediğiniz işlemi giriniz" << endl;
+        cin >> secim;
+
+        switch (secim)
+        {
+        case '1':
+            UrunEkle();
+            break;
+        case '2':
+            Puanlama();
+            break;
+        case '3':
+            Listeleme();
+            break;
+        case '4':
+            UrunArama();
+            break;
+        }
+
+        cout << "Ana menüye dönmek ister misiniz? (E/H)" << endl;
+        cin >> devam;
+
+    } while (devam == 'e' || devam == 'E');
+
+    return 0;
+}
+
+void UrunEkle()
+{
+    ofstream yaz("urunler.dat", ios::binary | ios::app);
+    char secim;
+    int sayac = 0;
+    do
+    {
+        cout << "Teknolojik ürününüzün numarasını giriniz:" << endl;
+        cin >> urun.urun_no;
+        cout << "Teknolojik ürününüzün markasını giriniz:" << endl;
+        cin >> urun.marka;
+        cout << "Teknolojik ürününüzün modelini giriniz:" << endl;
+        cin >> urun.model;
+        cout << "Teknolojik ürününüzün özelliklerini giriniz:" << endl;
+        cin >> urun.ozellik;
+
+        yaz.write((char *)&urun, sizeof(urun));
+
+        sayac++;
+
+        cout << "Başka bir ürün eklemek ister misiniz? (E/H)" << endl;
+        cin >> secim;
+
+    } while (secim == 'e' || secim == 'E');
+
+    cout << sayac << " ürün eklendi." << endl;
+    yaz.close();
+}
+
+void Puanlama()
+{
+    char uruns[40];
+    float toplam_puan;
+
+    ifstream oku("urunler.dat", ios::binary | ios::app);
+
+    oku.seekg(0, ios::end);
+
+    int kayitsayisi = oku.tellg() / sizeof(urun);
+
+    if (kayitsayisi > 0)
+    {
+        cout << "Puanlamak istediğiniz ürünün numarasını giriniz : \n";
+        cin >> uruns;
+
+        for (int i = 0; i < kayitsayisi; i++)
+        {
+            oku.seekg(i * sizeof(urun));
+            oku.read((char *)&urun, sizeof(urun));
+
+            if (strcmp(urun.urun_no, uruns) == 0)
+            {
+                cout << "\nÜrününüz :";
+                cout << "\nÜrünün numarası :" << urun.urun_no;
+                cout << "\nÜrünün markası :" << urun.marka;
+                cout << "\nÜrünün modeli :" << urun.model;
+                cout << "\nÜrünün özellikleri :" << urun.ozellik;
+            }
+            else
+                cout << "\nAradığınız ürün bulunamadı..\n";
+        }
+
+        if (strcmp(urun.urun_no, uruns) == 0)
+        {
+            ofstream yaz("urunler.dat", ios::binary | ios::app);
+
+            cout << "\nPuanınızı giriniz:\n";
+            cin >> toplam_puan;
+
+            urun.puan += toplam_puan;
+            toplam_puan = 0;
+            urun.sayac++;
+
+            yaz.write((char *)&urun, sizeof(urun));
+
+            yaz.close();
+            cout << "\n Puanı:\n" << urun.puan / urun.sayac;
+            cout << "\n";
+        }
+    }
+    else
+    {
+       
+    }
+
+    oku.close();
+}
+
+void Listeleme()
+{
+    ifstream oku("urunler.dat", ios::binary | ios::app);
+
+    oku.seekg(0, ios::end);
+
+    int adet = oku.tellg() / sizeof(urun);
+
+    if (adet > 0)
+    {
+        for (int i = 0; i < adet; i++)
+        {
+            oku.seekg(i * sizeof(urun));
+            oku.read((char *)&urun, sizeof(urun));
+
+            cout << i + 1 << ". ürünün bilgiler:" << endl;
+            cout << "Ürünün numarası:" << urun.urun_no << endl;
+            cout << "Ürünün markası:" << urun.marka << endl;
+            cout << "Ürünün modeli:" << urun.model << endl;
+            cout << "Ürünün özellikleri:" << urun.ozellik << endl;
+            cout << "----------------------" << endl;
+        }
+    }
+    else
+    {
+        cout << "KAYIT BULUNAMADI..." << endl;
+    }
+    oku.close();
+}
+
+void UrunArama()
+{
+    ifstream oku("urunler.dat", ios::binary | ios::app);
+
+    oku.seekg(0, ios::end);
+
+    int kayit = oku.tellg() / sizeof(urun);
+
+    char urun_no[10];
+    cout << "Aranacak ürün numarasını giriniz." << endl;
+    cin >> urun_no;
+
+    for (int i = 0; i < kayit; i++)
+    {
+        oku.seekg(i * sizeof(urun));
+        oku.read((char *)&urun, sizeof(urun));
+
+        if (strcmp(urun.urun_no, urun_no) == 0)
+        {
+            cout << "Bulunan ürünün bilgileri:" << endl;
+            cout << "Ürünün numarası:" << urun.urun_no << endl;
+            cout << "Ürünün markası:" << urun.marka << endl;
+            cout << "Ürünün modeli:" << urun.model << endl;
+            cout << "Ürünün özellikleri:" << urun.ozellik << endl;
+            cout << "----------------------" << endl;
+        }
+        else
+        {
+            
+        }
+    }
+
+    oku.close();
+}
